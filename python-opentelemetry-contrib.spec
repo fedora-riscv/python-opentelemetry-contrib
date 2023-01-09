@@ -952,6 +952,11 @@ Summary:        OpenTelemetry Contrib Instrumentation Packages
 Version:        %{prerel_version}
 License:        Apache-2.0
 
+# Removed upstream:
+# https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1366
+Obsoletes:      python3-opentelemetry-exporter-datadog < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-exporter-datadog+instruments < 0.36~b0-1
+
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
 %if %{with aio_pika}
