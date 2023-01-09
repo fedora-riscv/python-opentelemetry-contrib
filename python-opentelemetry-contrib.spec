@@ -1,3 +1,7 @@
+# Older versions of subpackages that are disabled in these conditionals are
+# Obsoleted in python3-opentelemetry-contrib-instrumentations; if changing or
+# removing a conditional, be sure that those are updated as needed.
+
 # A subpackage needs aio_pika ~= 7.2.0; python-aio-pika is not packaged
 %bcond_with aio_pika
 
@@ -952,10 +956,16 @@ License:        Apache-2.0
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
 %if %{with aio_pika}
 Requires:       python3-opentelemetry-instrumentation-aio-pika = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-aio-pika < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-aio-pika+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-aiohttp-client = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with aiopg}
 Requires:       python3-opentelemetry-instrumentation-aiopg = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-aiopg < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-aiopg+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-asgi = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-asyncpg = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
@@ -966,12 +976,18 @@ Requires:       python3-opentelemetry-instrumentation-botocore = %{?epoch:%{epoc
 Requires:       python3-opentelemetry-instrumentation-celery = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with confluent_kafka}
 Requires:       python3-opentelemetry-instrumentation-confluent-kafka = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-confluent-kafka < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-confluent-kafka+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-dbapi = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-django = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-elasticsearch = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with falcon}
 Requires:       python3-opentelemetry-instrumentation-falcon = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-falcon < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-falcon+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-fastapi = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-flask = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
@@ -990,20 +1006,32 @@ Requires:       python3-opentelemetry-instrumentation-pyramid = %{?epoch:%{epoch
 Requires:       python3-opentelemetry-instrumentation-redis = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with remoulade}
 Requires:       python3-opentelemetry-instrumentation-remoulade = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-remoulade < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-remoulade+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-requests = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with sklearn}
 Requires:       python3-opentelemetry-instrumentation-sklearn = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-sklearn < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-sklearn+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-sqlalchemy = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-sqlite3 = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with starlette}
 Requires:       python3-opentelemetry-instrumentation-starlette = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-starlette < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-starlette+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-system-metrics = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-tornado = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 %if %{with tortoise_orm}
 Requires:       python3-opentelemetry-instrumentation-tortoiseorm = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-tortoiseorm < 0.36~b0-1
+Obsoletes:      python3-opentelemetry-instrumentation-tortoiseorm+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-urllib = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-urllib3 = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
