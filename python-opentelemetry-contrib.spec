@@ -5,10 +5,7 @@
 # A subpackage needs aio_pika ~= 7.2.0; python-aio-pika is not packaged
 %bcond_with aio_pika
 
-# A subpackage needs aiopg >=0.13.0,<1.3.0; F38 has 1.3.4
-%bcond_with aiopg
-
-# A subpackage needs confluent-kafka >= 1.8.2, < 2.0.0; F38 has 1.6.1
+# A subpackage needs confluent-kafka ~= 1.8.2; F37 has 0.11.6
 %bcond_with confluent_kafka
 
 # Some tests need elasticsearch-dsl; python-elasticsearch-dsl is not packaged
@@ -17,11 +14,17 @@
 # A subpackage needs falcon >= 1.4.1, < 4.0.0; F38 has 4.0.0
 %bcond_with falcon
 
+# We omit the gRPC instrumentation due to test failures related to URL encoding
+# of values. This is not a problem in later releases.
+# /usr/lib/python3.11/site-packages/opentelemetry/test/test_base.py:73: in assertSpanHasAttributes
+#     self.assertEqual(val, span.attributes[key])
+# E   AssertionError: '[::1]' != '%5B::1%5D'
+# E   - [::1]
+# E   + %5B::1%5D
+%bcond_with grpc
+
 # Some tests need moto ~= 2.0; but python-moto is not packaged
 %bcond_with moto
-
-# A subpackage needs protobuf ~= 4.21; F38 has 3.19.6
-%bcond_with protobuf4
 
 # A subpackage needs remoulade >= 0.50; python-remoulade is not packaged
 %bcond_with remoulade
@@ -59,7 +62,7 @@ Name:           python-opentelemetry-contrib
 # and the two packages. Currently, nothing in this package follows the
 # OpenTelemetry “stable_version”, so the entire package is versioned with the
 # beta/pre-release version,
-%global prerel_version 0.36~b0
+%global prerel_version 0.33~b0
 # …except a few subpackages that have their OWN versioning scheme:
 %global aws_propagator_version 1.0.1
 %global aws_sdk_version 2.0.1
@@ -91,8 +94,12 @@ ExcludeArch:    %{ix86}
 BuildRequires:  python3-devel
 
 %global prerel_distinfo %(echo '%{prerel_version}' | tr -d '~^').dist-info
+# Note: we do not package exporter/opentelemetry-exporter-datadog because it
+# was removed in a subsequent version
+# (https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1366),
+# and so we do not want anyone to introduce a dependency on it, nor do we want
+# to have to Obsolete it in F38+.
 %global pkgdirs %{shrink:
-    %{?with_protobuf4:exporter/opentelemetry-exporter-prometheus-remote-write}
     exporter/opentelemetry-exporter-richconsole
     opentelemetry-instrumentation
     opentelemetry-distro
@@ -101,7 +108,7 @@ BuildRequires:  python3-devel
     sdk-extension/opentelemetry-sdk-extension-aws
     util/opentelemetry-util-http
     instrumentation/opentelemetry-instrumentation-aiohttp-client
-    %{?with_aiopg:instrumentation/opentelemetry-instrumentation-aiopg}
+    instrumentation/opentelemetry-instrumentation-aiopg
     %{?with_aio_pika:instrumentation/opentelemetry-instrumentation-aio-pika}
     instrumentation/opentelemetry-instrumentation-asgi
     instrumentation/opentelemetry-instrumentation-asyncpg
@@ -117,7 +124,7 @@ BuildRequires:  python3-devel
     %{?with_falcon:instrumentation/opentelemetry-instrumentation-falcon}
     instrumentation/opentelemetry-instrumentation-fastapi
     instrumentation/opentelemetry-instrumentation-flask
-    instrumentation/opentelemetry-instrumentation-grpc
+    %{?with_grpc:instrumentation/opentelemetry-instrumentation-grpc}
     instrumentation/opentelemetry-instrumentation-httpx
     instrumentation/opentelemetry-instrumentation-jinja2
     instrumentation/opentelemetry-instrumentation-kafka-python
@@ -163,18 +170,6 @@ BuildRequires:  latexmk
 This package provides documentation for OpenTelemetry Python Contrib packages.
 
 
-%if %{with protobuf4}
-%package -n python3-opentelemetry-exporter-prometheus-remote-write
-Summary:        Prometheus Remote Write Metrics Exporter for OpenTelemetry
-Version:        %{prerel_version}
-
-%description -n python3-opentelemetry-exporter-prometheus-remote-write
-This package contains an exporter to send metrics from the OpenTelemetry Python
-SDK directly to a Prometheus Remote Write integrated backend (such as Cortex or
-Thanos) without having to run an instance of the Prometheus server.
-%endif
-
-
 %package -n python3-opentelemetry-exporter-richconsole
 Summary:        Rich Console Exporter for OpenTelemetry
 Version:        %{prerel_version}
@@ -218,9 +213,8 @@ Summary:        AWS X-Ray Propagator for OpenTelemetry
 Version:        %{aws_propagator_version}
 License:        Apache-2.0
 
-# Test dependency (covered upstream by dependencies in
-# opentelemetry-instrumentation-fastapi and
-# opentelemetry-exporter-prometheus-remote-write).
+# Test dependency (covered upstream by dependency in
+# opentelemetry-instrumentation-fastapi).
 BuildRequires:  python3dist(requests)
 
 %description -n python3-opentelemetry-propagator-aws-xray
@@ -272,7 +266,6 @@ This library allows tracing HTTP requests made by the aiohttp client library.
 %pyproject_extras_subpkg -n python3-opentelemetry-instrumentation-aiohttp-client -i %{python3_sitelib}/opentelemetry_instrumentation_aiohttp_client-%{prerel_distinfo} instruments
 
 
-%if %{with aiopg}
 %package -n python3-opentelemetry-instrumentation-aiopg
 Summary:        OpenTelemetry aiopg instrumentation
 Version:        %{prerel_version}
@@ -287,14 +280,12 @@ Requires:       python3-opentelemetry-instrumentation-dbapi = %{?epoch:%{epoch}:
 OpenTelemetry aiopg instrumentation.
 
 %pyproject_extras_subpkg -n python3-opentelemetry-instrumentation-aiopg -i %{python3_sitelib}/opentelemetry_instrumentation_aiopg-%{prerel_distinfo} instruments
-%endif
 
 
 %if %{with aio_pika}
 %package -n python3-opentelemetry-instrumentation-aio-pika
 Summary:        OpenTelemetry Aio-pika instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 %description -n python3-opentelemetry-instrumentation-aio-pika
 This library allows tracing requests made by the Aio-pika library.
@@ -306,7 +297,6 @@ This library allows tracing requests made by the Aio-pika library.
 %package -n python3-opentelemetry-instrumentation-asgi
 Summary:        ASGI instrumentation for OpenTelemetry
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -324,7 +314,6 @@ OpenTelemetry.
 %package -n python3-opentelemetry-instrumentation-asyncpg
 Summary:        OpenTelemetry instrumentation for AsyncPG
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -375,7 +364,6 @@ This library allows tracing requests made by the Boto library.
 %package -n python3-opentelemetry-instrumentation-boto3sqs
 Summary:        Boto3 SQS service tracing for OpenTelemetry
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -422,7 +410,6 @@ Instrumentation for Celery.
 %package -n python3-opentelemetry-instrumentation-confluent-kafka
 Summary:        OpenTelemetry Confluent Kafka instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -505,7 +492,6 @@ in Falcon applications.
 %package -n python3-opentelemetry-instrumentation-fastapi
 Summary:        OpenTelemetry FastAPI Instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -542,6 +528,7 @@ in Flask applications.
 %pyproject_extras_subpkg -n python3-opentelemetry-instrumentation-flask -i %{python3_sitelib}/opentelemetry_instrumentation_flask-%{prerel_distinfo} instruments
 
 
+%if %{with grpc}
 %package -n python3-opentelemetry-instrumentation-grpc
 Summary:        OpenTelemetry gRPC instrumentation
 Version:        %{prerel_version}
@@ -555,6 +542,7 @@ Requires:       python3-opentelemetry-instrumentation = %{?epoch:%{epoch}:}%{pre
 Client and server interceptors for gRPC Python.
 
 %pyproject_extras_subpkg -n python3-opentelemetry-instrumentation-grpc -i %{python3_sitelib}/opentelemetry_instrumentation_grpc-%{prerel_distinfo} instruments
+%endif
 
 
 %package -n python3-opentelemetry-instrumentation-httpx
@@ -641,7 +629,6 @@ specified to trace_integration using ‘MySQL’.
 %package -n python3-opentelemetry-instrumentation-pika
 Summary:        OpenTelemetry pika instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 %description -n python3-opentelemetry-instrumentation-pika
 This library allows tracing requests made by the pika library.
@@ -698,7 +685,6 @@ OpenTelemetry pymongo Instrumentation
 %package -n python3-opentelemetry-instrumentation-pymysql
 Summary:        OpenTelemetry PyMySQL instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -731,7 +717,6 @@ OpenTelemetry Pyramid Instrumentation
 %package -n python3-opentelemetry-instrumentation-redis
 Summary:        OpenTelemetry Redis instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -747,7 +732,6 @@ This library allows tracing requests made by the Redis library.
 %package -n python3-opentelemetry-instrumentation-remoulade
 Summary:        OpenTelemetry Remoulade instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -832,7 +816,6 @@ OpenTelemetry SQLite3 Instrumentation.
 %package -n python3-opentelemetry-instrumentation-starlette
 Summary:        OpenTelemetry Starlette Instrumentation
 Version:        %{prerel_version}
-License:        Apache-2.0
 
 # Ensure we have fully-versioned dependencies (to release) across subpackages
 # https://docs.fedoraproject.org/en-US/packaging-guidelines/#_requiring_base_package
@@ -966,12 +949,7 @@ Obsoletes:      python3-opentelemetry-instrumentation-aio-pika < 0.36~b0-1
 Obsoletes:      python3-opentelemetry-instrumentation-aio-pika+instruments < 0.36~b0-1
 %endif
 Requires:       python3-opentelemetry-instrumentation-aiohttp-client = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
-%if %{with aiopg}
 Requires:       python3-opentelemetry-instrumentation-aiopg = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
-%else
-Obsoletes:      python3-opentelemetry-instrumentation-aiopg < 0.36~b0-1
-Obsoletes:      python3-opentelemetry-instrumentation-aiopg+instruments < 0.36~b0-1
-%endif
 Requires:       python3-opentelemetry-instrumentation-asgi = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-asyncpg = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-aws-lambda = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
@@ -996,7 +974,9 @@ Obsoletes:      python3-opentelemetry-instrumentation-falcon+instruments < 0.36~
 %endif
 Requires:       python3-opentelemetry-instrumentation-fastapi = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-flask = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%if %{with grpc}
 Requires:       python3-opentelemetry-instrumentation-grpc = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%endif
 Requires:       python3-opentelemetry-instrumentation-httpx = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-jinja2 = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-kafka-python = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
@@ -1051,22 +1031,21 @@ that could not be satisfied.
 %prep
 %autosetup -n opentelemetry-python-contrib-%{srcversion}
 
-# Un-pin importlib-metadata test dependency; see:
-#   Pin importlib-metadata version for celery test
-#   https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1374
-sed -r -i 's/("importlib-metadata)[[:blank:]]*==[^"]+/\1/' \
-    instrumentation/opentelemetry-instrumentation-celery/pyproject.toml
-
 # Un-pin test dependencies that were pinned to exact versions but perhaps
 # habitually rather than for some concrete reason.
 #
 # https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1277
-sed -r -i 's/("parameterized)[[:blank:]]*==[^"]+/\1/' \
-    instrumentation/opentelemetry-instrumentation-falcon/pyproject.toml
+sed -r -i 's/(parameterized)[[:blank:]]*==[^"]+/\1/' \
+    instrumentation/opentelemetry-instrumentation-falcon/setup.cfg
 # https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1291
 # Unpinning is not good enough; see the werkzeug build conditonal
-sed -r -i 's/("werkzeug)[[:blank:]]*==[^"]+/\1/' \
-    instrumentation/opentelemetry-instrumentation-pyramid/pyproject.toml
+sed -r -i 's/(werkzeug)[[:blank:]]*==[^"]+/\1/' \
+    instrumentation/opentelemetry-instrumentation-pyramid/setup.cfg
+
+# Allow newer versions of requests for testing (don’t pin to minor version)
+sed -r -i 's/(requests ~= 2\.23)\.0([[:blank:]]+.*)?/\1\2/' \
+    instrumentation/opentelemetry-instrumentation-fastapi/setup.cfg \
+    instrumentation/opentelemetry-instrumentation-starlette/setup.cfg
 
 # Some tests, and the dev requirements, pin markupsafe==2.0.1. See:
 #
@@ -1081,7 +1060,7 @@ sed -r -i 's/("werkzeug)[[:blank:]]*==[^"]+/\1/' \
 #
 # The find-then-modify pattern keeps us from discarding mtimes on any sources
 # that do not need modification.
-find . -type f \( -name '*.txt' -o -name '*.toml' \) -exec \
+find . -type f \( -name '*.txt' -o -name '*.toml' -o -name '*.cfg' \) -exec \
     gawk '/markupsafe[[:blank:]]*==/ { print FILENAME }' '{}' '+' |
   xargs -r -t sed -r -i 's/(markupsafe[[:blank:]]*)==/\1>=/'
 
@@ -1095,10 +1074,10 @@ find */src */*/src -type f -name '*.py' \
 # *all* instrumentation subpackages; patch out the dependencies on those that
 # we were not able to build due to dependency issues.
 for omit in \
-    %{?!with_aiopg:aiopg} \
     %{?!with_aio_pika:aio-pika} \
     %{?!with_confluent_kafka:confluent-kafka} \
     %{?!with_falcon:falcon} \
+    %{?!with_grpc:grpc} \
     %{?!with_remoulade:remoulade} \
     %{?!with_sklearn:sklearn} \
     %{?!with_starlette:starlette} \
@@ -1106,8 +1085,8 @@ for omit in \
     %{nil}
 do
   sed -r -i \
-      "s/^([[:blank:]]*)(\"opentelemetry-instrumentation-${omit}==)/\1# \2/" \
-      opentelemetry-contrib-instrumentations/pyproject.toml
+      "s/^([[:blank:]]*)(opentelemetry-instrumentation-${omit}==)/\1# \2/" \
+      opentelemetry-contrib-instrumentations/setup.cfg
 done
 
 # Drop intersphinx mappings, since we can’t download remote inventories and
@@ -1118,8 +1097,6 @@ echo 'intersphinx_mapping.clear()' >> docs/conf.py
 (
   # - We do not use formatters/linters/type-checkers/coverage.
   #
-  # - Similarly, we do not run the “spellcheck” tox environment, so we do not
-  #   need codespell.
   # - readme-renderer is needed only if we run
   #   scripts/check_for_valid_readme.py; this is also the reason for the
   #   version-pinned dependency on bleach, so we remove that too
@@ -1129,7 +1106,7 @@ echo 'intersphinx_mapping.clear()' >> docs/conf.py
   # - grpcio-tools is not needed since we are not generating any proto bindings
   sed -r \
       -e '/\b(black|flake8|isort|mypy|mypy-protobuf|pylint|pytest-cov)\b/d' \
-      -e '/\b(codespell|readme-renderer|bleach)\b/d' \
+      -e '/\b(readme-renderer|bleach)\b/d' \
       -e '/\b(sphinx)/d' \
       -e '/\b(grpcio-tools)\b/d' \
       dev-requirements.txt | tee dev-requirements-prefiltered.txt
@@ -1327,7 +1304,6 @@ do
       opentelemetry.instrumentation.botocore.extensions
       opentelemetry.instrumentation.botocore.extensions.dynamodb
       opentelemetry.instrumentation.botocore.extensions.lmbd
-      opentelemetry.instrumentation.botocore.extensions.sns
       opentelemetry.instrumentation.botocore.extensions.sqs
       opentelemetry.instrumentation.botocore.extensions.types}
     continue
@@ -1374,20 +1350,6 @@ done
 %doc README.md
 %if %{with doc_pdf}
 %doc docs/_build/latex/opentelemetrypythoncontrib.pdf
-%endif
-
-
-%if %{with protobuf4}
-%files -n python3-opentelemetry-exporter-prometheus-remote-write
-%license LICENSE LICENSE.Apache LICENSE.BSD3
-%doc exporter/opentelemetry-exporter-prometheus-remote-write/README.rst
-%doc exporter/opentelemetry-exporter-prometheus-remote-write/example/
-
-# Shared namespace directories
-%dir %{python3_sitelib}/opentelemetry/{,exporter/}
-
-%{python3_sitelib}/opentelemetry/exporter/prometheus_remote_write/
-%{python3_sitelib}/opentelemetry_exporter_prometheus_remote_write-%{prerel_distinfo}/
 %endif
 
 
@@ -1490,7 +1452,6 @@ done
 %{python3_sitelib}/opentelemetry_instrumentation_aiohttp_client-%{prerel_distinfo}/
 
 
-%if %{with aiopg}
 %files -n python3-opentelemetry-instrumentation-aiopg
 %license instrumentation/opentelemetry-instrumentation-aiopg/LICENSE
 %doc instrumentation/opentelemetry-instrumentation-aiopg/README.rst
@@ -1500,12 +1461,11 @@ done
 
 %{python3_sitelib}/opentelemetry/instrumentation/aiopg/
 %{python3_sitelib}/opentelemetry_instrumentation_aiopg-%{prerel_distinfo}/
-%endif
 
 
 %if %{with aio_pika}
 %files -n python3-opentelemetry-instrumentation-aio-pika
-%license instrumentation/opentelemetry-instrumentation-aio-pika/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-aio-pika/README.rst
 
 # Shared namespace directories
@@ -1517,7 +1477,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-asgi
-%license instrumentation/opentelemetry-instrumentation-asgi/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-asgi/README.rst
 
 # Shared namespace directories
@@ -1528,7 +1488,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-asyncpg
-%license instrumentation/opentelemetry-instrumentation-asyncpg/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-asyncpg/README.rst
 
 # Shared namespace directories
@@ -1561,7 +1521,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-boto3sqs
-%license instrumentation/opentelemetry-instrumentation-boto3sqs/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-boto3sqs/README.rst
 
 # Shared namespace directories
@@ -1595,7 +1555,7 @@ done
 
 %if %{with confluent_kafka}
 %files -n python3-opentelemetry-instrumentation-confluent-kafka
-%license instrumentation/opentelemetry-instrumentation-confluent-kafka/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-confluent-kafka/README.rst
 
 # Shared namespace directories
@@ -1654,7 +1614,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-fastapi
-%license instrumentation/opentelemetry-instrumentation-fastapi/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-fastapi/README.rst
 
 # Shared namespace directories
@@ -1675,6 +1635,7 @@ done
 %{python3_sitelib}/opentelemetry_instrumentation_flask-%{prerel_distinfo}/
 
 
+%if %{with grpc}
 %files -n python3-opentelemetry-instrumentation-grpc
 %license instrumentation/opentelemetry-instrumentation-grpc/LICENSE
 %doc instrumentation/opentelemetry-instrumentation-grpc/README.rst
@@ -1684,6 +1645,7 @@ done
 
 %{python3_sitelib}/opentelemetry/instrumentation/grpc/
 %{python3_sitelib}/opentelemetry_instrumentation_grpc-%{prerel_distinfo}/
+%endif
 
 
 %files -n python3-opentelemetry-instrumentation-httpx
@@ -1743,7 +1705,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-pika
-%license instrumentation/opentelemetry-instrumentation-pika/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-pika/README.rst
 
 # Shared namespace directories
@@ -1787,7 +1749,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-pymysql
-%license instrumentation/opentelemetry-instrumentation-pymysql/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-pymysql/README.rst
 
 # Shared namespace directories
@@ -1809,7 +1771,7 @@ done
 
 
 %files -n python3-opentelemetry-instrumentation-redis
-%license instrumentation/opentelemetry-instrumentation-redis/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-redis/README.rst
 
 # Shared namespace directories
@@ -1821,7 +1783,7 @@ done
 
 %if %{with remoulade}
 %files -n python3-opentelemetry-instrumentation-remoulade
-%license instrumentation/opentelemetry-instrumentation-remoulade/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-remoulade/README.rst
 
 # Shared namespace directories
@@ -1880,7 +1842,7 @@ done
 
 %if %{with starlette}
 %files -n python3-opentelemetry-instrumentation-starlette
-%license instrumentation/opentelemetry-instrumentation-starlette/LICENSE
+%license LICENSE LICENSE.Apache LICENSE.BSD3
 %doc instrumentation/opentelemetry-instrumentation-starlette/README.rst
 
 # Shared namespace directories
