@@ -1,0 +1,40 @@
+.TH OPENTELEMETRY\-BOOTSTRAP "1" "December 2022" "" "User Commands"
+.SH NAME
+.B opentelemetry\-bootstrap
+\(en
+detect libraries and installs instrumentation packages
+.SH SYNOPSIS
+.B opentelemetry\-bootstrap
+.RB [ \-h ]
+.RB [ \-\-version ]
+.RB [ \-a\  { install , requirements }]
+.SH DESCRIPTION
+.P
+.BR opentelemetry\-bootstrap (1)
+detects installed libraries and automatically installs
+the relevant instrumentation packages for them.
+.SH OPTIONS
+.SS "OPTIONAL ARGUMENTS"
+.TP
+.B \-h\fR,\ \fB\-\-help
+Show a help message and exit.
+.TP
+.B \-\-version
+Print version information.
+.TP
+.BR \-a\  { install , requirements },\  \-\-action\  { install , requirements }
+.IP
+.B install
+\(en
+uses pip to install the new requirements
+using to the currently active site-package.
+.IP
+.B requirements
+\(en
+prints out the new requirements to
+.IR stdout .
+Action can be piped and appended to a
+.B requirements.txt
+file.
+.SH "SEE ALSO"
+.BR opentelemetry\-instrument (1)

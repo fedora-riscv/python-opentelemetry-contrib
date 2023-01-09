@@ -1,0 +1,80 @@
+.TH OPENTELEMETRY\-INSTRUMENT "1" "December 2022" "" "User Commands"
+.SH NAME
+.B opentelemetry\-instrument
+\(en
+automatically instrument and run a Python program
+.SH SYNOPSIS
+.B opentelemetry\-instrument
+.RB [ \-h ]
+.RB [ \-\-version ]
+.RB [ \-\-logs_exporter\ \fILOGS_EXPORTER ]
+.RB [ \-\-metrics_exporter\ \fIMETRICS_EXPORTER ]
+.RB [ \-\-propagators\ \fIPROPAGATORS ]
+.RB [ \-\-context\ \fICONTEXT ]
+.RB [ \-\-id_generateor\ \fIID_GENERATOR ]
+.RB [ \-\-meter_provider\ \fIMETER_PROVIDER ]
+.RB [ \-\-tracer_provider\ \fITRACER_PROVIDER ]
+.RB [ \-\-traces_exporter\ \fITRACES_EXPORTER ]
+.RB [ \-\-disabled_instrumentations\ \fIDISABLED_INSTRUMENTATIONS ]
+.RB [ \-\-version ]
+.I command\fR\ ...\:
+.SH DESCRIPTION
+.P
+.BR opentelemetry\-instrument (1)
+automatically instruments a Python program and its
+dependencies and then runs the program.
+.SH OPTIONS
+.SS "POSITIONAL ARGUMENTS"
+.TP
+.I command
+Your Python application.
+.TP
+.I command_args
+Arguments for your application.
+.SS "OPTIONAL ARGUMENTS"
+.TP
+.B \-h\fR,\ \fB\-\-help
+Show a help message and exit.
+.TP
+.BI \-\-logs_exporter\  LOGS_EXPORTER
+.TP
+.BI \-\-metrics_exporter\  METRICS_EXPORTER
+.TP
+.BI \-\-propagators\  PROPAGATORS
+.TP
+.BI \-\-context\  CONTEXT
+.TP
+.BI \-\-id_generator\  ID_GENERATOR
+.TP
+.BI \-\-meter_provider\  METER_PROVIDER
+.TP
+.BI \-\-tracer_provider\  TRACER_PROVIDER
+.TP
+.BI \-\-traces_exporter\  TRACES_EXPORTER
+.TP
+.BI \-\-disabled_instrumentations\  DISABLED_INSTRUMENTATIONS
+.TP
+.B \-\-version
+Print version information.
+.SH ENVIRONMENT
+Optional arguments (except for
+.B \-\-help
+and
+.BR \-\-version )
+for
+.BR opentelemetry\-instrument (1)
+directly correspond with OpenTelemetry environment variables.
+The corresponding optional argument is formed by removing the
+.B OTEL_
+or
+.B OTEL_PYTHON_
+prefix from the environment variable and lower casing the rest.
+For example, the optional argument
+.B \-\-attribute_value_length_limit
+corresponds with the environment variable
+.BR OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT .
+These optional arguments will override
+the current value of the corresponding environment variable
+during the execution of the command.
+.SH "SEE ALSO"
+.BR opentelemetry\-bootstrap (1)
