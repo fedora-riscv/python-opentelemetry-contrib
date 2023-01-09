@@ -14,7 +14,7 @@
 # Some tests need elasticsearch-dsl; python-elasticsearch-dsl is not packaged
 %bcond_with elasticsearch_dsl
 
-# A subpackage needs falcon >= 1.4.1, < 4.0.0; cannot satisfy
+# A subpackage needs falcon >= 1.4.1, < 4.0.0; F38 has 4.0.0
 %bcond_with falcon
 
 # Some tests need moto ~= 2.0; but python-moto is not packaged
