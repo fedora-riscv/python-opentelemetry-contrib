@@ -11,7 +11,7 @@
 # Some tests need elasticsearch-dsl; python-elasticsearch-dsl is not packaged
 %bcond_with elasticsearch_dsl
 
-# A subpackage needs falcon >= 1.4.1, < 4.0.0; F38 has 4.0.0
+# A subpackage needs falcon >= 1.4.1, < 4.0.0; F37 has 4.0.0
 %bcond_with falcon
 
 # We omit the gRPC instrumentation due to test failures related to URL encoding
@@ -29,17 +29,17 @@
 # A subpackage needs remoulade >= 0.50; python-remoulade is not packaged
 %bcond_with remoulade
 
-# A subpackage needs scikit-learn ~= 0.24.0; F38 has 1.1.2
+# A subpackage needs scikit-learn ~= 0.24.0; F37 has 1.1.2
 %bcond_with sklearn
 
-# A subpackage needs starlette ~= 0.13.0; F38 has 0.22.0
+# A subpackage needs starlette ~= 0.13.0; F37 has 0.20.4
 %bcond_with starlette
 
 # A subpackage needs tortoise-orm >= 0.17.0; python-tortoise-orm is not
 # packaged
 %bcond_with tortoise_orm
 
-# Some tests need werkzeug == 0.16.1, or at least < 2.2.0; F38 has 2.2.2
+# Some tests need werkzeug == 0.16.1, or at least < 2.2.0; F37 has 2.2.2
 #
 # We unpinned the werkzeug version in the pyramid instrumentation test
 # dependencies (it was pinned to == 0.16.1), but it’s not immediately obvious
