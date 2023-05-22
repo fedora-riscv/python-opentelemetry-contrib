@@ -1,0 +1,55 @@
+From 6acd78c523aecd813b08516a25d299c986c2ccbc Mon Sep 17 00:00:00 2001
+From: "Benjamin A. Beasley" <code@musicinmybrain.net>
+Date: Tue, 23 May 2023 13:43:47 -0400
+Subject: [PATCH 1/2] Add a direct dependency on yarl to
+ instrumentaton-aiohttp-client
+
+The minimum version ensures the expected URL string in the tests is
+consistent; see
+https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1772.
+
+The yarl dependency is needed both for the package and for the tests.
+---
+ .../opentelemetry-instrumentation-aiohttp-client/pyproject.toml  | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/instrumentation/opentelemetry-instrumentation-aiohttp-client/pyproject.toml b/instrumentation/opentelemetry-instrumentation-aiohttp-client/pyproject.toml
+index 8acaaa72..75bf6478 100644
+--- a/instrumentation/opentelemetry-instrumentation-aiohttp-client/pyproject.toml
++++ b/instrumentation/opentelemetry-instrumentation-aiohttp-client/pyproject.toml
+@@ -30,6 +30,7 @@ dependencies = [
+   "opentelemetry-semantic-conventions == 0.39b0",
+   "opentelemetry-util-http == 0.39b0",
+   "wrapt >= 1.0.0, < 2.0.0",
++  "yarl >= 1.9.1",
+ ]
+ 
+ [project.optional-dependencies]
+-- 
+2.40.1
+
+
+From 2219cd797451e4be44363612f6ddb44d2c50d34e Mon Sep 17 00:00:00 2001
+From: "Benjamin A. Beasley" <code@musicinmybrain.net>
+Date: Tue, 23 May 2023 13:47:28 -0400
+Subject: [PATCH 2/2] Add a test dependency on yarl to instrumentation-aio-pika
+
+---
+ .../opentelemetry-instrumentation-aio-pika/pyproject.toml        | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/instrumentation/opentelemetry-instrumentation-aio-pika/pyproject.toml b/instrumentation/opentelemetry-instrumentation-aio-pika/pyproject.toml
+index 736222a0..91b57843 100644
+--- a/instrumentation/opentelemetry-instrumentation-aio-pika/pyproject.toml
++++ b/instrumentation/opentelemetry-instrumentation-aio-pika/pyproject.toml
+@@ -38,6 +38,7 @@ test = [
+   "opentelemetry-test-utils == 0.39b0",
+   "pytest",
+   "wrapt >= 1.0.0, < 2.0.0",
++  "yarl",
+ ]
+ 
+ [project.entry-points.opentelemetry_instrumentor]
+-- 
+2.40.1
+

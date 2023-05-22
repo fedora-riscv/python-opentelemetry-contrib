@@ -87,6 +87,21 @@ Source0:        %{url}/archive/v%{srcversion}/opentelemetry-python-contrib-%{src
 Source10:       opentelemetry-bootstrap.1
 Source11:       opentelemetry-instrument.1
 
+# Add direct/explicit dependencies on yarl
+# https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1821
+#
+# Rebased on v0.39b0 tag.
+Patch:          opentelemetry-python-contrib-0.39b0-yarl.patch
+
+# Revert “Fix expected URL in aiohttp instrumentation test”
+# https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1772
+#
+# Upstream adjusted this when updating to yarl 1.9.1; maybe this changed back
+# from 1.9.1 to 1.9.2? The fact that I had to revert the commit was reported
+# upstream in:
+# https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1821#issuecomment-1560136536
+Patch:          0001-Revert-Fix-expected-URL-in-aiohttp-instrumentation-t.patch
+
 BuildArch:      noarch
 # https://fedoraproject.org/wiki/Changes/EncourageI686LeafRemoval
 # While this package is noarch, excluding i686 unblocks many dependent packages
@@ -1721,7 +1736,7 @@ that could not be satisfied.
 
 
 %prep
-%autosetup -n opentelemetry-python-contrib-%{srcversion}
+%autosetup -n opentelemetry-python-contrib-%{srcversion} -p1
 
 # Un-pin test dependencies that were pinned to exact versions but perhaps
 # habitually rather than for some concrete reason.
@@ -1998,23 +2013,6 @@ do
     # build environment. See also the similar test skips in
     # python-opentelemetry.
     k="${k-}${k+ and }not (TestLoadingAioHttpInstrumentor and test_loading_instrumentor)"
-    # Expected URL changed from yarl 1.8.2 to 1.9.1; skip the test if yarl is
-    # not updated. See:
-    #   Fix expected URL in aiohttp instrumentation test
-    #   https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1772
-    # and also:
-    #   aiohttp instrumentation is failing
-    #   https://github.com/open-telemetry/opentelemetry-python-contrib/issues/1770
-    if ! %{python3} -c '
-import yarl
-from packaging import version
-
-if version.parse(yarl.__version__) < version.parse("1.9"):
-    raise SystemExit("Old yarl")
-'
-    then
-      k="${k-}${k+ and }not (TestAioHttpIntegration and test_status_codes)"
-    fi
     ;;
   instrumentation/opentelemetry-instrumentation-fastapi)
     # We cannot pin an old version of FastAPI, so these tests fail:
