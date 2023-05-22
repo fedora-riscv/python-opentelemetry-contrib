@@ -1,14 +1,14 @@
 # See eachdist.ini. Note that this package must have the same version as the
 # ”prerel_version” (pre-release version) and “stable_version” in the
 # python-opentelemetry package, and the two packages must be updated together.
-%global stable_version 1.17.0
-%global prerel_version 0.38~b0
+%global stable_version 1.18.0
+%global prerel_version 0.39~b0
 # There are a few subpackages that have their *own* versioning scheme!
 %global aws_propagator_version 1.0.1
 %global aws_sdk_version 2.0.1
 # Adjust this to ensure the release is monotonic, unless the base package
 # version and the above versions all change at the same time.
-%global baserel 9
+%global baserel 11
 
 # Older versions of subpackages that are disabled in these conditionals are
 # Obsoleted in python3-opentelemetry-contrib-instrumentations; if changing or
@@ -94,6 +94,9 @@ BuildArch:      noarch
 ExcludeArch:    %{ix86}
 
 BuildRequires:  python3-devel
+
+# For yarl version check; see %%check section
+BuildRequires:  python3dist(packaging)
 
 %global stable_distinfo %(echo '%{stable_version}' | tr -d '~^').dist-info
 %global prerel_distinfo %(echo '%{prerel_version}' | tr -d '~^').dist-info
@@ -1866,7 +1869,7 @@ for dep in cfg.get("testenv", "deps").splitlines():
     excludes.update({"sqlalchemy11", "sqlalchemy12"})
     excludes.add("pika0")
     excludes.update({"pymemcache135", "pymemcache200", "pymemcache300"})
-    excludes.update({"pymemcache342"})
+    excludes.update({"pymemcache342", "pymemcache400"})
     excludes.update({"httpx18", "httpx21"})
 %if %{without aio_pika}
     excludes.update({"aio-pika7", "aio-pika8", "aio-pika9"})
@@ -1995,6 +1998,23 @@ do
     # build environment. See also the similar test skips in
     # python-opentelemetry.
     k="${k-}${k+ and }not (TestLoadingAioHttpInstrumentor and test_loading_instrumentor)"
+    # Expected URL changed from yarl 1.8.2 to 1.9.1; skip the test if yarl is
+    # not updated. See:
+    #   Fix expected URL in aiohttp instrumentation test
+    #   https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1772
+    # and also:
+    #   aiohttp instrumentation is failing
+    #   https://github.com/open-telemetry/opentelemetry-python-contrib/issues/1770
+    if ! %{python3} -c '
+import yarl
+from packaging import version
+
+if version.parse(yarl.__version__) < version.parse("1.9"):
+    raise SystemExit("Old yarl")
+'
+    then
+      k="${k-}${k+ and }not (TestAioHttpIntegration and test_status_codes)"
+    fi
     ;;
   instrumentation/opentelemetry-instrumentation-fastapi)
     # We cannot pin an old version of FastAPI, so these tests fail:
