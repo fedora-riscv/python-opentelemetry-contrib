@@ -27,6 +27,9 @@
 # A subpackage needs falcon >= 1.4.1, < 4.0.0; F38 has 4.0.0
 %bcond_with falcon
 
+# A subpackage needs httpx >= 0.18.0, <= 0.23.0; F39 has 0.24.0
+%bcond_with httpx
+
 # Some tests need moto ~= 2.0; but python-moto is not packaged
 %bcond_with moto
 
@@ -122,7 +125,7 @@ BuildRequires:  python3-devel
     instrumentation/opentelemetry-instrumentation-fastapi
     instrumentation/opentelemetry-instrumentation-flask
     instrumentation/opentelemetry-instrumentation-grpc
-    instrumentation/opentelemetry-instrumentation-httpx
+    %{?with_httpx:instrumentation/opentelemetry-instrumentation-httpx}
     instrumentation/opentelemetry-instrumentation-jinja2
     instrumentation/opentelemetry-instrumentation-kafka-python
     instrumentation/opentelemetry-instrumentation-logging
@@ -861,6 +864,7 @@ packages that are instrumented) are installed.
 %ghost %{python3_sitelib}/opentelemetry_instrumentation_grpc-%{prerel_distinfo}
 
 
+%if %{with httpx}
 %package -n python3-opentelemetry-instrumentation-httpx
 Summary:        OpenTelemetry HTTPX Instrumentation
 Version:        %{prerel_version}
@@ -893,6 +897,7 @@ python3-opentelemetry-instrumentation-httpx. It makes sure the dependencies
 
 %files -n python3-opentelemetry-instrumentation-httpx+instruments
 %ghost %{python3_sitelib}/opentelemetry_instrumentation_httpx-%{prerel_distinfo}
+%endif
 
 
 %package -n python3-opentelemetry-instrumentation-jinja2
@@ -1656,7 +1661,12 @@ Obsoletes:      python3-opentelemetry-instrumentation-falcon+instruments < 0.36~
 Requires:       python3-opentelemetry-instrumentation-fastapi = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-flask = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-grpc = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%if %{with httpx}
 Requires:       python3-opentelemetry-instrumentation-httpx = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
+%else
+Obsoletes:      python3-opentelemetry-instrumentation-httpx < 0.36~b0-11
+Obsoletes:      python3-opentelemetry-instrumentation-httpx+instruments < 0.36~b0-11
+%endif
 Requires:       python3-opentelemetry-instrumentation-jinja2 = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-kafka-python = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
 Requires:       python3-opentelemetry-instrumentation-logging = %{?epoch:%{epoch}:}%{prerel_version}-%{release}
@@ -1763,6 +1773,7 @@ for omit in \
     %{?!with_aio_pika:aio-pika} \
     %{?!with_confluent_kafka:confluent-kafka} \
     %{?!with_falcon:falcon} \
+    %{?!with_httpx:httpx} \
     %{?!with_remoulade:remoulade} \
     %{?!with_sklearn:sklearn} \
     %{?!with_starlette:starlette} \
@@ -1851,8 +1862,8 @@ for dep in cfg.get("testenv", "deps").splitlines():
     # We cannot test obsolete or future versions
     excludes.update({"django1", "django2", "django4"})
     excludes.update({"elasticsearch2", "elasticsearch5", "elasticsearch6"})
-    excludes.update({"falcon1", "falcon2", "falcon3"})
-    excludes.add("sqlalchemy11")
+    excludes.update({"falcon2", "falcon2", "falcon3"})
+    excludes.add("sqlalchemy12")
     excludes.add("pika0")
     excludes.update({"pymemcache135", "pymemcache200", "pymemcache300"})
     excludes.update({"pymemcache342"})
@@ -2366,6 +2377,7 @@ done
 %{python3_sitelib}/opentelemetry_instrumentation_grpc-%{prerel_distinfo}/
 
 
+%if %{with httpx}
 %files -n python3-opentelemetry-instrumentation-httpx
 %license instrumentation/opentelemetry-instrumentation-httpx/LICENSE
 %doc instrumentation/opentelemetry-instrumentation-httpx/README.rst
@@ -2375,6 +2387,7 @@ done
 
 %{python3_sitelib}/opentelemetry/instrumentation/httpx/
 %{python3_sitelib}/opentelemetry_instrumentation_httpx-%{prerel_distinfo}/
+%endif
 
 
 %files -n python3-opentelemetry-instrumentation-jinja2
