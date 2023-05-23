@@ -1,14 +1,14 @@
 # See eachdist.ini. Note that this package must have the same version as the
 # ”prerel_version” (pre-release version) and “stable_version” in the
 # python-opentelemetry package, and the two packages must be updated together.
-%global stable_version 1.17.0
-%global prerel_version 0.38~b0
+%global stable_version 1.18.0
+%global prerel_version 0.39~b0
 # There are a few subpackages that have their *own* versioning scheme!
 %global aws_propagator_version 1.0.1
 %global aws_sdk_version 2.0.1
 # Adjust this to ensure the release is monotonic, unless the base package
 # version and the above versions all change at the same time.
-%global baserel 9
+%global baserel 12
 
 # Older versions of subpackages that are disabled in these conditionals are
 # Obsoleted in python3-opentelemetry-contrib-instrumentations; if changing or
@@ -84,6 +84,15 @@ Source0:        %{url}/archive/v%{srcversion}/opentelemetry-python-contrib-%{src
 Source10:       opentelemetry-bootstrap.1
 Source11:       opentelemetry-instrument.1
 
+# Revert “Fix expected URL in aiohttp instrumentation test”
+# https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1772
+#
+# Upstream adjusted this when updating to yarl 1.9.1; maybe this changed back
+# from 1.9.1 to 1.9.2? The fact that I had to revert the commit was reported
+# upstream in:
+# https://github.com/open-telemetry/opentelemetry-python-contrib/pull/1821#issuecomment-1560136536
+Patch:          0001-Revert-Fix-expected-URL-in-aiohttp-instrumentation-t.patch
+
 BuildArch:      noarch
 # https://fedoraproject.org/wiki/Changes/EncourageI686LeafRemoval
 # While this package is noarch, excluding i686 unblocks many dependent packages
@@ -91,6 +100,9 @@ BuildArch:      noarch
 ExcludeArch:    %{ix86}
 
 BuildRequires:  python3-devel
+
+# For yarl version check; see %%check section
+BuildRequires:  python3dist(packaging)
 
 %global stable_distinfo %(echo '%{stable_version}' | tr -d '~^').dist-info
 %global prerel_distinfo %(echo '%{prerel_version}' | tr -d '~^').dist-info
@@ -1708,7 +1720,7 @@ that could not be satisfied.
 
 
 %prep
-%autosetup -n opentelemetry-python-contrib-%{srcversion}
+%autosetup -n opentelemetry-python-contrib-%{srcversion} -p1
 
 # Un-pin test dependencies that were pinned to exact versions but perhaps
 # habitually rather than for some concrete reason.
@@ -1852,10 +1864,10 @@ for dep in cfg.get("testenv", "deps").splitlines():
     excludes.update({"django1", "django2", "django4"})
     excludes.update({"elasticsearch2", "elasticsearch5", "elasticsearch6"})
     excludes.update({"falcon1", "falcon2", "falcon3"})
-    excludes.add("sqlalchemy11")
+    excludes.update({"sqlalchemy11", "sqlalchemy12"})
     excludes.add("pika0")
     excludes.update({"pymemcache135", "pymemcache200", "pymemcache300"})
-    excludes.update({"pymemcache342"})
+    excludes.update({"pymemcache342", "pymemcache400"})
     excludes.update({"httpx18", "httpx21"})
 %if %{without aio_pika}
     excludes.update({"aio-pika7", "aio-pika8", "aio-pika9"})
