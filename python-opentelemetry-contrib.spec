@@ -1874,7 +1874,7 @@ for dep in cfg.get("testenv", "deps").splitlines():
     # We cannot test obsolete or future versions
     excludes.update({"django1", "django2", "django4"})
     excludes.update({"elasticsearch2", "elasticsearch5", "elasticsearch6"})
-    excludes.update({"falcon2", "falcon2", "falcon3"})
+    excludes.update({"falcon1", "falcon2", "falcon3"})
     excludes.update({"sqlalchemy11", "sqlalchemy12"})
     excludes.add("pika0")
     excludes.update({"pymemcache135", "pymemcache200", "pymemcache300"})
