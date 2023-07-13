@@ -18,13 +18,14 @@
 # packaged
 %bcond aio_pika 0
 
-# A subpackage needs confluent-kafka >= 1.8.2, < 2.0.0; F38 has 1.6.1
+# A subpackage needs confluent-kafka >= 1.8.2, < 2.0.0; F39 has 1.6.1
+# https://bugzilla.redhat.com/show_bug.cgi?id=1697392
 %bcond confluent_kafka 0
 
 # Some tests need elasticsearch-dsl; python-elasticsearch-dsl is not packaged
 %bcond elasticsearch_dsl 0
 
-# A subpackage needs falcon >= 1.4.1, < 4.0.0; F38 has 4.0.0
+# A subpackage needs falcon >= 1.4.1, < 4.0.0; F39 has 4.0.0
 %bcond falcon 0
 
 # A subpackage needs httpx >= 0.18.0, <= 0.23.0; F39 has 0.24.0
@@ -44,17 +45,17 @@
 # A subpackage needs remoulade >= 0.50; python-remoulade is not packaged
 %bcond remoulade 0
 
-# A subpackage needs scikit-learn ~= 0.24.0; F38 has 1.1.2
+# A subpackage needs scikit-learn ~= 0.24.0; F39 has 1.3.0
 %bcond sklearn 0
 
-# A subpackage needs starlette ~= 0.13.0; F38 has 0.26.1
+# A subpackage needs starlette ~= 0.13.0; F39 has 0.27.0
 %bcond starlette 0
 
 # A subpackage needs tortoise-orm >= 0.17.0; python-tortoise-orm is not
 # packaged
 %bcond tortoise_orm 0
 
-# Some tests need werkzeug == 0.16.1, or at least < 2.2.0; F38 has 2.2.3
+# Some tests need werkzeug == 0.16.1, or at least < 2.2.0; F39 has 2.2.3
 #
 # We unpinned the werkzeug version in the pyramid instrumentation test
 # dependencies (it was pinned to == 0.16.1), but it’s not immediately obvious
